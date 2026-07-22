@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <title>PANAGIOTIS-Station</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <style>
+        body { margin: 0; background: #000; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: sans-serif; }
+              
+        .neon-wrapper { position: relative; padding: 5px; border-radius: 20px; background: #000; overflow: hidden; }
+        .neon-wrapper::before { content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: conic-gradient(transparent, #ff007f, #00ffff, #ff007f, transparent); animation: rotate 4s linear infinite; }
+        .container { width: 100%px; height: 486px; position: relative; border-radius: 15px; overflow: hidden; background: #000; z-index: 1; }
+        @keyframes rotate { 100% { transform: rotate(360deg); } }
+        video { width: 100%; height: 100%; object-fit: cover; }
+            
+        .marquee-text { position: absolute; top: 15px; width: 728px; left: 0; overflow: hidden; opacity: 0; transition: opacity 0.4s; z-index: 50; pointer-events: none; }
+        .container:hover .marquee-text { opacity: 1; }
+        .text-inner { display: inline-block; white-space: nowrap; animation: marquee 25s linear infinite, rainbow 5s linear infinite; font-size: 30px; font-weight: 900; background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3); background-size: 400%; -webkit-background-clip: text; background-clip: text; color: transparent; }
+        @keyframes marquee { 0% { transform: translateX(728px); } 100% { transform: translateX(-100%); } }
+        @keyframes rainbow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+       
+        .side-panel { position: absolute; top: 0; right: 0; height: 100%; width: 80px; background: rgba(0,0,0,0.6); z-index: 100; display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 15px; opacity: 0; transition: opacity 0.4s; pointer-events: none; }
+        .container:hover .side-panel { opacity: 1; pointer-events: auto; }
+        .btn-box { width: 50px; height: 40px; border: 1px solid #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; color: #fff; font-size: 11px; border-radius: 5px; text-align: center; }
+        .vol-slider { writing-mode: vertical-lr; height: 80px; accent-color: #ff007f; cursor: pointer; }
+       
+        #MainOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; z-index: 200; cursor: pointer; border-radius: 15px; overflow: hidden; }
+        #ContentWrapper { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body>
+
+<div class="neon-wrapper">
+    <div class="container">
+        <div class="marquee-text"><div class="text-inner">PANAGIOTIS-Station</div></div>
+        
+        <video autoplay loop muted playsinline id="bgVideo">
+            <source src="https://choises.github.io/nt/24.mp4" type="video/mp4">
+        </video>
+
+        <div class="side-panel">
+            <div class="btn-box" onclick="showInfo('titolo')">suca</div>
+            <div class="btn-box" onclick="showInfo('cover')">COV</div>
+            <input type="range" class="vol-slider" min="0" max="1" step="0.1" value="1" oninput="radio.volume = this.value">
+            <div class="btn-box" onclick="radio.play()">▶</div>
+            <div class="btn-box" onclick="radio.pause()">⏹</div>
+            <div class="btn-box"><span>ON</span><span id="numVal">--</span></div>
+        </div>
+
+        <div id="MainOverlay" onclick="$(this).hide()">
+            <div id="ContentWrapper"></div>
+        </div>
+
+        <audio id="backboneRadio" src="https://stream.rcast.net/200586"></audio>
+    </div>
+</div>
+
+<script>
+    const _0x4f22 = "PANAGIOTIS-Station";
+    const _0x5a11 = "PANAGIOTIS-Station";
+
+    const radio = document.getElementById('backboneRadio');
+    const STATUS_URL = "https://stream.rcast.net/200586";
+    const LOGO_URL = "https://xatimg.com/image/wN0GwHPQejWO.png"; 
+    
+    function updateListeners() {
+        $.getJSON(STATUS_URL, function(data) {
+            if(data.icestats && data.icestats.source) {
+                $('#numVal').text(data.icestats.source.listeners);
+            }
+        });
+    }
+    setInterval(updateListeners, 30000);
+    updateListeners();
+    
+    function showInfo(type) {
+        $.getJSON(STATUS_URL, function(data) {
+            let song = data.icestats.source.title;
+            
+            if(type === 'titolo') {
+                $('#ContentWrapper').html("<h2 style='color:#fff;'>MagiaInimiiTale</h2>");
+                $('#MainOverlay').show();
+            } else if(type === 'cover') {
+                $.getJSON("https://itunes.apple.com/search?term=" + encodeURIComponent(song) + "&limit=1", function(res) {
+                    if(res.results && res.results.length > 0) {
+                        let art = res.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
+                        $('#ContentWrapper').html("<img src='"+art+"' style='width:100%; height:100%; object-fit:cover;'>");
+                    } else {
+                        $('#ContentWrapper').html("<img src='"+LOGO_URL+"' style='width:100%; height:100%; object-fit:cover;'>");
+                    }
+                    $('#MainOverlay').show();
+                });
+            }
+        });
+    }
+</script>
+</body>
+</html>
